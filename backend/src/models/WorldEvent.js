@@ -20,14 +20,42 @@ const worldEventSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    difficulty: {
+      type: String,
+      enum: ['UNKNOWN', 'EASY', 'MEDIUM', 'HARD', 'EXTREME'],
+      default: 'UNKNOWN',
+    },
+    risk: {
+      type: String,
+      enum: ['LOW', 'MEDIUM', 'HIGH'],
+      default: 'LOW',
+    },
+    requiredEvolutionLevel: {
+      type: Number,
+      default: 1,
+    },
+    reward: {
+      type: String,
+    },
+    impactReward: {
+      type: Number,
+      default: 0,
+    },
+    objectives: [{
+      id: String,
+      description: String,
+    }],
     status: {
       type: String,
-      enum: ['Active', 'Completed', 'Failed', 'Upcoming'],
-      default: 'Upcoming',
+      enum: ['LOCKED', 'AVAILABLE', 'ACTIVE', 'COMPLETED', 'FAILED', 'EXPIRED', 'Upcoming'],
+      default: 'LOCKED',
       index: true,
     },
     location: {
-      type: String,
+      type: [Number], // x, y, z
+    },
+    expiresAt: {
+      type: Date,
     },
     participants: [{
       type: String, // Firebase UIDs

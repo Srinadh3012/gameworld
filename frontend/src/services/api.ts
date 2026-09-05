@@ -83,6 +83,44 @@ export const getCreations = (worldId?: string) => {
   return fetchWithAuth(`/creations${query}`);
 };
 
+// --- EVENT APIs ---
+export const startEvent = (worldId: string, eventId: string) =>
+  fetchWithAuth(`/worlds/${worldId}/events/${eventId}/start`, { method: 'POST' });
+
+export const completeEvent = (worldId: string, eventId: string) =>
+  fetchWithAuth(`/worlds/${worldId}/events/${eventId}/complete`, { method: 'POST' });
+
+export const failEvent = (worldId: string, eventId: string) =>
+  fetchWithAuth(`/worlds/${worldId}/events/${eventId}/fail`, { method: 'POST' });
+
+export const getMyEvents = () => fetchWithAuth('/players/me/events');
+export const getMyAchievements = () => fetchWithAuth('/players/me/achievements');
+
+// --- INVENTORY APIs ---
+export const getMyInventory = () => fetchWithAuth('/players/me/inventory');
+export const collectItem = (itemId: string, quantity = 1) => 
+  fetchWithAuth('/players/me/inventory/collect', { method: 'POST', body: JSON.stringify({ itemId, quantity }) });
+export const useItem = (itemId: string) => 
+  fetchWithAuth('/players/me/inventory/use', { method: 'POST', body: JSON.stringify({ itemId }) });
+export const dropItem = (itemId: string, quantity = 1) => 
+  fetchWithAuth('/players/me/inventory/drop', { method: 'POST', body: JSON.stringify({ itemId, quantity }) });
+export const craftItem = (recipeId: string) => 
+  fetchWithAuth('/players/me/crafting/craft', { method: 'POST', body: JSON.stringify({ recipeId }) });
+
+// --- PROGRESSION APIs ---
+export const getMyProgression = () => fetchWithAuth('/players/me/progression');
+export const awardXP = (amount: number, source: string, sourceId?: string) => 
+  fetchWithAuth('/players/me/progression/xp', { method: 'POST', body: JSON.stringify({ amount, source, sourceId }) });
+export const unlockAbility = (abilityId: string, cost: number, levelRequirement: number) => 
+  fetchWithAuth('/players/me/progression/unlock-ability', { method: 'POST', body: JSON.stringify({ abilityId, cost, levelRequirement }) });
+
+// --- ACTION APIs ---
+export const createWorldAction = (worldId: string, actionData: any) =>
+  fetchWithAuth(`/worlds/${worldId}/actions`, {
+    method: 'POST',
+    body: JSON.stringify(actionData)
+  });
+
 // --- HEALTH API ---
 export const checkHealth = async () => {
   try {

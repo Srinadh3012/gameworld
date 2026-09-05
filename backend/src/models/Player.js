@@ -11,6 +11,7 @@ const playerSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
+      index: true,
     },
     avatar: {
       type: String,
@@ -42,6 +43,20 @@ const playerSchema = new mongoose.Schema(
       eventsParticipated: { type: Number, default: 0 },
       creations: { type: Number, default: 0 },
       communityImpact: { type: Number, default: 0 },
+      worldChangesCaused: { type: Number, default: 0 },
+      majorDecisionsMade: { type: Number, default: 0 },
+      endgamePathProgress: {
+        type: Map,
+        of: Number,
+        default: () => new Map([['The Preserver', 0], ['The Awakener', 0], ['The Transformer', 0]])
+      },
+      // Multiplayer legacy stats
+      explorersMet: { type: Number, default: 0 },
+      cooperativeEvents: { type: Number, default: 0 },
+      sharedDiscoveries: { type: Number, default: 0 },
+      worldContributions: { type: Number, default: 0 },
+      guardiansAssisted: { type: Number, default: 0 },
+      partyMissions: { type: Number, default: 0 }
     },
   },
   {

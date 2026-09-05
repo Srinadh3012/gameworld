@@ -7,10 +7,13 @@ import { Globe2, Crosshair, Zap, Hammer, Star, Shield, Activity, Calendar, Award
 import { useAuth } from '../context/AuthContext';
 import { getMyProfile, createMyProfile, getWorldMemories } from '../services/api';
 import { MOCK_PLAYER_PROFILE } from '../data/mockProfileData';
+import { progressionSystem } from '../game/systems/ProgressionSystem';
+import type { LocalProgression } from '../game/systems/ProgressionSystem';
 
 export function Profile() {
   const { currentUser } = useAuth();
   const [player, setPlayer] = useState<any>(null);
+  const [progression, setProgression] = useState<LocalProgression | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -31,6 +34,9 @@ export function Profile() {
         } else {
           setError('Failed to load profile data.');
         }
+
+        const prog = await progressionSystem.getProgression();
+        setProgression(prog);
       } catch (err: any) {
         console.error('Profile load error:', err);
         setError('GAMEWORLD data is temporarily unavailable.');
@@ -92,8 +98,10 @@ export function Profile() {
   const memorableMoments = MOCK_PLAYER_PROFILE.memorableMoments;
   const timeline = MOCK_PLAYER_PROFILE.timeline;
 
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ACHIEVEMENTS'>('OVERVIEW');
+
   return (
-    <div className="w-full pb-32 pt-8">
+    <div className="min-h-screen bg-game-dark pt-20 pb-12 font-mono">
       {/* 1. IDENTITY HEADER */}
       <section className="px-4 mb-12">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-end gap-6 border-b border-game-border/50 pb-8">
@@ -105,98 +113,134 @@ export function Profile() {
             <div className="absolute inset-0 bg-hero-glow opacity-30 animate-pulse pointer-events-none" />
             <img src={avatar} alt={displayName} className="w-full h-full object-cover z-10 relative drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
           </motion.div>
-          
-          <div className="text-center md:text-left flex-grow">
-            <h1 className="text-4xl md:text-5xl font-display font-black text-white text-glow mb-2">{displayName}</h1>
-            <p className="text-xl text-game-neon font-bold tracking-widest uppercase mb-3 flex items-center justify-center md:justify-start gap-2">
-              <Award className="w-5 h-5" /> {player.title || 'Initiate'}
+          {/* Header */}
+          <div className="mb-8 border-b border-white/10 pb-4">
+            <h1 className="text-4xl font-display font-black text-white uppercase tracking-widest text-glow mb-2">
+              PLAYER LEGACY
+            </h1>
+            <p className="text-game-neon opacity-80 uppercase tracking-widest text-sm">
+              SECTOR ALPHA-01 DATABASE // ENTRY: {displayName}
             </p>
-            <p className="text-gray-500 text-sm flex items-center justify-center md:justify-start gap-1">
-              <Calendar className="w-4 h-4" /> Initiated {joinDate}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <div className="max-w-6xl mx-auto px-4 space-y-16">
-        
-        {/* 2. LEGACY STATS */}
-        <section>
-          <h2 className="text-sm font-bold text-gray-500 tracking-widest uppercase mb-4 flex items-center gap-2">
-            <Activity className="w-4 h-4" /> Universe Footprint
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatBlock label="Discovered" value={legacyStats.worldsDiscovered || 0} icon={<Globe2 />} />
-            <StatBlock label="Influenced" value={legacyStats.worldsInfluenced || 0} icon={<Zap />} />
-            <StatBlock label="Events" value={legacyStats.eventsParticipated || 0} icon={<Crosshair />} />
-            <StatBlock label="Creations" value={legacyStats.creations || 0} icon={<Hammer />} />
-            <StatBlock label="Discoveries" value={legacyStats.discoveries || 0} icon={<Star />} />
-            <StatBlock label="Impact Score" value={(legacyStats.communityImpact || 0).toLocaleString()} icon={<Shield />} highlight />
-          </div>
-        </section>
-
-        {/* 3. EVOLUTION & IMPACT (Split View) */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="p-6 md:p-8 flex flex-col bg-game-dark/80 backdrop-blur border-game-border/50">
-            <h2 className="text-2xl font-display font-bold text-white mb-2">Player Evolution</h2>
-            <p className="text-gray-400 text-sm mb-8">Behavioral archetype progression based on historical actions.</p>
-            <div className="flex-grow flex items-center justify-center">
-              <ArchetypeRadar traits={archetypes} />
+            
+            <div className="flex gap-4 mt-6">
+              <button onClick={() => setActiveTab('OVERVIEW')} className={`px-4 py-2 uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'OVERVIEW' ? 'border-game-neon text-game-neon' : 'border-transparent text-gray-500 hover:text-white'}`}>OVERVIEW</button>
+              <button onClick={() => setActiveTab('ACHIEVEMENTS')} className={`px-4 py-2 uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'ACHIEVEMENTS' ? 'border-game-neon text-game-neon' : 'border-transparent text-gray-500 hover:text-white'}`}>ACHIEVEMENTS</button>
             </div>
-          </Card>
+          </div>
           
-          <Card className="p-6 md:p-8 flex flex-col bg-game-dark/80 backdrop-blur border-game-border/50">
-            <h2 className="text-2xl font-display font-bold text-white mb-2">World Impact</h2>
-            <p className="text-gray-400 text-sm mb-8">Magnitude of influence across different regions of GAMEWORLD.</p>
-            <div className="flex-grow flex items-center justify-center">
-              <WorldImpactChart impacts={worldImpacts} />
-            </div>
-          </Card>
-        </section>
+          {activeTab === 'OVERVIEW' ? (
+            <div className="max-w-6xl mx-auto px-4 space-y-16">
+              {/* 2. LEGACY STATS */}
+              <section>
+                <h2 className="text-sm font-bold text-gray-500 tracking-widest uppercase mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4" /> Universe Footprint
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  <StatBlock label="Discovered" value={legacyStats.worldsDiscovered || 0} icon={<Globe2 />} />
+                  <StatBlock label="Influenced" value={legacyStats.worldsInfluenced || 0} icon={<Zap />} />
+                  <StatBlock label="Events" value={legacyStats.eventsParticipated || 0} icon={<Crosshair />} />
+                  <StatBlock label="Creations" value={legacyStats.creations || 0} icon={<Hammer />} />
+                  <StatBlock label="Discoveries" value={legacyStats.discoveries || 0} icon={<Star />} />
+                  <StatBlock label="Impact Score" value={(legacyStats.communityImpact || 0).toLocaleString()} icon={<Shield />} highlight />
+                </div>
+              </section>
 
-        {/* 4. MEMORABLE MOMENTS */}
-        <section>
-          <h2 className="text-2xl font-display font-bold text-white mb-6">Memorable Moments</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {memorableMoments.map((mm) => (
-              <div key={mm.id} className="relative p-6 glass-panel border border-game-neon/30 rounded-xl overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-game-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-0 left-0 w-1 h-full bg-game-neon" />
-                <span className="text-xs font-bold text-game-neon mb-2 block">{mm.date}</span>
-                <h3 className="text-xl font-bold text-white mb-2">{mm.title}</h3>
-                <p className="text-gray-400 text-sm">{mm.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 5. LEGACY TIMELINE */}
-        <section>
-          <h2 className="text-2xl font-display font-bold text-white mb-6">Legacy Timeline</h2>
-          <div className="bg-game-panel rounded-xl border border-game-border p-6 md:p-8">
-            <div className="relative border-l border-game-border/50 ml-3 space-y-8 pb-4">
-              {timeline.map((item, i) => (
-                <motion.div 
-                  key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="relative pl-6"
-                >
-                  <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-game-purple shadow-[0_0_8px_rgba(138,43,226,0.8)]" />
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                    <span className="text-xs font-bold text-gray-500">{item.date}</span>
-                    <span className="text-xs uppercase tracking-wider text-game-neon bg-game-neon/10 px-2 py-0.5 rounded">{item.world}</span>
+              {/* 2.5 PROGRESSION STATS */}
+              {progression && (
+                <section>
+                  <h2 className="text-sm font-bold text-gray-500 tracking-widest uppercase mb-4 flex items-center gap-2">
+                    <Zap className="w-4 h-4" /> Neural Progression
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatBlock label="Total XP" value={progression.totalExperience} icon={<Star />} />
+                    <StatBlock label="Abilities" value={progression.unlockedAbilities.length} icon={<Activity />} />
+                    <StatBlock label="Skill Points" value={progression.skillPoints} icon={<Crosshair />} />
+                    <StatBlock label="Exploration XP" value={progression.explorationXP} icon={<Globe2 />} />
                   </div>
-                  <p className="text-gray-200 font-semibold">{item.action}</p>
-                </motion.div>
+                </section>
+              )}
+
+              {/* 3. EVOLUTION & IMPACT (Split View) */}
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="p-6 md:p-8 flex flex-col bg-game-dark/80 backdrop-blur border-game-border/50">
+                  <h2 className="text-2xl font-display font-bold text-white mb-2">Player Evolution</h2>
+                  <p className="text-gray-400 text-sm mb-8">Behavioral archetype progression based on historical actions.</p>
+                  <div className="flex-grow flex items-center justify-center">
+                    <ArchetypeRadar traits={archetypes} />
+                  </div>
+                </Card>
+                
+                <Card className="p-6 md:p-8 flex flex-col bg-game-dark/80 backdrop-blur border-game-border/50">
+                  <h2 className="text-2xl font-display font-bold text-white mb-2">World Impact</h2>
+                  <p className="text-gray-400 text-sm mb-8">Magnitude of influence across different regions of GAMEWORLD.</p>
+                  <div className="flex-grow flex items-center justify-center">
+                    <WorldImpactChart impacts={worldImpacts} />
+                  </div>
+                </Card>
+              </section>
+
+              {/* 4. MEMORABLE MOMENTS */}
+              <section>
+                <h2 className="text-2xl font-display font-bold text-white mb-6">Memorable Moments</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {memorableMoments.map((mm) => (
+                    <div key={mm.id} className="relative p-6 glass-panel border border-game-neon/30 rounded-xl overflow-hidden group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-game-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute top-0 left-0 w-1 h-full bg-game-neon" />
+                      <span className="text-xs font-bold text-game-neon mb-2 block">{mm.date}</span>
+                      <h3 className="text-xl font-bold text-white mb-2">{mm.title}</h3>
+                      <p className="text-gray-400 text-sm">{mm.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* 5. LEGACY TIMELINE */}
+              <section>
+                <h2 className="text-2xl font-display font-bold text-white mb-6">Legacy Timeline</h2>
+                <div className="bg-game-panel rounded-xl border border-game-border p-6 md:p-8">
+                  <div className="relative border-l border-game-border/50 ml-3 space-y-8 pb-4">
+                    {timeline.map((item, i) => (
+                      <motion.div 
+                        key={item.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1 }}
+                        className="relative pl-6"
+                      >
+                        <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-game-purple shadow-[0_0_8px_rgba(138,43,226,0.8)]" />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                          <span className="text-xs font-bold text-gray-500">{item.date}</span>
+                          <span className="text-xs uppercase tracking-wider text-game-neon bg-game-neon/10 px-2 py-0.5 rounded">{item.world}</span>
+                        </div>
+                        <p className="text-gray-200 font-semibold">{item.action}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Example Achievement Categories */}
+              {['EXPLORATION', 'MEMORY', 'STORY', 'GUARDIANS', 'CRAFTING', 'PROGRESSION', 'SOCIAL', 'WORLD IMPACT'].map((category) => (
+                <Card key={category} title={category} icon={<Award className="w-5 h-5" />}>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-black/40 border border-white/5 rounded">
+                      <div>
+                        <div className="text-cyan-300 text-sm font-bold tracking-widest mb-1">{category} INITIATE</div>
+                        <div className="text-gray-500 text-xs">Complete 1 objective in this category.</div>
+                      </div>
+                      <div className="text-green-400"><Award className="w-6 h-6" /></div>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
-          </div>
-        </section>
-
-      </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

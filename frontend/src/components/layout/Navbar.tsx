@@ -9,6 +9,7 @@ const navLinks = [
   { name: 'Discover', path: '/discover' },
   { name: 'World', path: '/world' },
   { name: 'Arena', path: '/arena' },
+  { name: 'Progression', path: '/progression' },
   { name: 'Create', path: '/create' },
   { name: 'Community', path: '/community' },
 ];

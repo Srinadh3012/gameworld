@@ -10,7 +10,6 @@ export function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -23,9 +22,6 @@ export function Register() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      return setError('Access codes do not match.');
-    }
     if (password.length < 8) {
       return setError('Access code must be at least 8 characters.');
     }
@@ -51,7 +47,7 @@ export function Register() {
           setError('Access code is too weak. Upgrade security protocol.');
           break;
         default:
-          setError('Failed to establish legacy. Please try again.');
+          setError('Failed: ' + (err.code || err.message || 'Unknown error'));
           console.error(err);
       }
     } finally {
@@ -135,21 +131,6 @@ export function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-game-dark border border-game-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-game-purple focus:ring-1 focus:ring-game-purple transition-all"
                 placeholder="Min 8 characters"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">
-                Verify Access Code
-              </label>
-              <input 
-                type="password" 
-                required 
-                disabled={!isFirebaseConfigured || loading}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-game-dark border border-game-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-game-purple focus:ring-1 focus:ring-game-purple transition-all"
-                placeholder="Repeat access code"
               />
             </div>
 

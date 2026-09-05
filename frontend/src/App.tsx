@@ -8,14 +8,24 @@ import { WorldMemory } from './pages/WorldMemory';
 import { Profile } from './pages/Profile';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { Arena } from './pages/Arena';
+import { Play } from './pages/Play';
+import { Progression } from './pages/Progression';
+import { WorldMapPage } from './pages/WorldMapPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
+        <ErrorBoundary>
+          <Routes>
+            {/* Fullscreen Game Route */}
+          <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
+          <Route path="/map" element={<ProtectedRoute><WorldMapPage /></ProtectedRoute>} />
+
           <Route path="/" element={<Layout />}>
             {/* Public Routes */}
             <Route index element={<Home />} />
@@ -25,12 +35,14 @@ function App() {
             
             {/* Protected Routes */}
             <Route path="world" element={<ProtectedRoute><WorldMemory /></ProtectedRoute>} />
-            <Route path="arena" element={<ProtectedRoute><Placeholder title="Arena" /></ProtectedRoute>} />
+            <Route path="arena" element={<ProtectedRoute><Arena /></ProtectedRoute>} />
+            <Route path="progression" element={<ProtectedRoute><Progression /></ProtectedRoute>} />
             <Route path="create" element={<ProtectedRoute><Placeholder title="Create" /></ProtectedRoute>} />
             <Route path="community" element={<ProtectedRoute><Placeholder title="Community" /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           </Route>
-        </Routes>
+          </Routes>
+        </ErrorBoundary>
       </Router>
     </AuthProvider>
   );

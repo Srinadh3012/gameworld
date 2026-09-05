@@ -14,8 +14,15 @@ const {
 const {
   getWorldEvents,
   createEvent,
-  updateEvent, // Note: updateEvent is technically /api/events/:id, but we'll mount it accordingly
+  updateEvent, 
+  startEvent,
+  completeEvent,
+  failEvent
 } = require('../controllers/eventController');
+const {
+  getWorldActions,
+  createWorldAction,
+} = require('../controllers/actionController');
 
 // All world routes require authentication for GAMEWORLD
 router.use(verifyAuth);
@@ -39,7 +46,21 @@ router.route('/:id/events')
   .get(getWorldEvents)
   .post(createEvent);
 
+router.route('/:id/events/:eventId/start')
+  .post(startEvent);
+
+router.route('/:id/events/:eventId/complete')
+  .post(completeEvent);
+
+router.route('/:id/events/:eventId/fail')
+  .post(failEvent);
+
 // Update event directly (typically mounted at /api/events, but we can do it here if preferred by path or separately)
 // The prompt specified PATCH /api/events/:id, so it will be routed through server.js properly.
+
+// World Action Routes
+router.route('/:id/actions')
+  .get(getWorldActions)
+  .post(createWorldAction);
 
 module.exports = router;

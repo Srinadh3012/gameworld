@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useGameState } from "../game/context/GameStateContext";
+
 const REGIONS = [
-  { id: 'neon-rift', name: 'Neon Rift', x: 20, y: 30, color: '#00f0ff', players: 12450, activity: 'High', event: 'Data Heist', level: 45, size: 24 },
-  { id: 'forgotten-valley', name: 'Forgotten Valley', x: 75, y: 25, color: '#8a2be2', players: 4320, activity: 'Medium', event: 'Ancient Awakening', level: 22, size: 20 },
-  { id: 'iron-district', name: 'Iron District', x: 80, y: 70, color: '#ff4500', players: 28900, activity: 'Critical', event: 'Conflict State', level: 88, size: 28 },
-  { id: 'echo-forest', name: 'Echo Forest', x: 25, y: 75, color: '#00ff7f', players: 127, activity: 'Low', event: 'Newly Discovered', level: 1, size: 16 },
-  { id: 'zero-sector', name: 'Zero Sector', x: 50, y: 50, color: '#ff00ff', players: 9999, activity: 'Unstable', event: 'Destabilizing', level: 99, size: 36 },
+  { id: 'core_zone', name: 'Zero Sector', x: 50, y: 50, color: '#ff00ff', players: 9999, activity: 'Unstable', event: 'Destabilizing', level: 99, size: 36 },
+  { id: 'silent_valley', name: 'Silent Valley', x: 75, y: 25, color: '#8a2be2', players: 4320, activity: 'Medium', event: 'Ancient Awakening', level: 22, size: 20 },
+  { id: 'lumen_forest', name: 'Lumen Forest', x: 25, y: 75, color: '#00ff7f', players: 127, activity: 'Low', event: 'Newly Discovered', level: 1, size: 16 },
+  { id: 'forgotten_ruins', name: 'Forgotten Ruins', x: 80, y: 70, color: '#ff4500', players: 28900, activity: 'Critical', event: 'Conflict State', level: 88, size: 28 },
+  { id: 'neon-rift', name: 'Neon Rift', x: 20, y: 30, color: '#00f0ff', players: 12450, activity: 'High', event: 'Data Heist', level: 45, size: 24 }
 ];
 
 const CONNECTIONS = [
-  [0, 4], [1, 4], [2, 4], [3, 4], [0, 3], [1, 2]
+  [0, 1], [0, 2], [0, 3], [0, 4], [1, 3], [2, 4]
 ];
 
 export function WorldCore() {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const { worldPhase, environmentState } = useGameState();
   
   return (
     <div className="relative w-full max-w-4xl aspect-[4/3] sm:aspect-video mx-auto select-none">
@@ -128,9 +131,13 @@ export function WorldCore() {
                         <span className="text-gray-400">Activity:</span>
                         <span className="font-semibold" style={{ color: region.color }}>{region.activity}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Environment:</span>
+                        <span className="font-semibold" style={{ color: '#fff' }}>{environmentState[region.id] || 'Stable'}</span>
+                      </div>
                       <div className="pt-2 mt-2 border-t border-game-border text-xs">
-                        <span className="text-gray-400 block mb-1">Current Event:</span>
-                        <span className="text-white font-medium animate-pulse">{region.event}</span>
+                        <span className="text-gray-400 block mb-1">Current Phase:</span>
+                        <span className="text-cyan-300 font-medium animate-pulse">{worldPhase}</span>
                       </div>
                     </div>
                   </div>

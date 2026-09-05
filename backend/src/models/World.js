@@ -43,6 +43,32 @@ const worldSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'WorldEvent',
     },
+    worldPhase: {
+      type: String,
+      enum: ['Dormant', 'Awakening', 'Transformation', 'Resonance', 'Threshold'],
+      default: 'Dormant',
+    },
+    dominantResonance: {
+      type: String,
+      default: 'Neutral',
+    },
+    environmentState: {
+      type: Map,
+      of: String,
+      default: {},
+    },
+    unlockedEndgamePaths: {
+      type: [String],
+      default: [],
+    },
+    majorDecisions: {
+      type: [String],
+      default: [],
+    },
+    worldTransformationLevel: {
+      type: Number,
+      default: 0,
+    }
   },
   {
     timestamps: true,
